@@ -24,6 +24,8 @@ const message = (id: string, value: string) => {
 const dialog = {
   product: get<HTMLDialogElement>('product-dialog'), cart: get<HTMLDialogElement>('cart-dialog'), checkout: get<HTMLDialogElement>('checkout-dialog'),
 };
+const mobilePanelMotion = matchMedia('(max-width: 520px) and (prefers-reduced-motion: no-preference)');
+const panelMotion = new WeakMap<HTMLDialogElement, { animation: Animation; closing: boolean }>();
 const productForm = get<HTMLFormElement>('product-form');
 const checkoutForm = get<HTMLFormElement>('checkout-form');
 const checkoutSubmit = get<HTMLButtonElement>('checkout-submit');
@@ -226,10 +228,51 @@ async function refresh(force = false) {
   }
 }
 
+function stopPanelMotion(panel: HTMLDialogElement) {
+  panelMotion.get(panel)?.animation.cancel();
+  panelMotion.delete(panel);
+}
+
+function slidePanel(panel: HTMLDialogElement, closing: boolean, afterClose?: () => void) {
+  const offscreen = 'translateY(100%)';
+  const from = closing ? getComputedStyle(panel).transform : offscreen;
+  stopPanelMotion(panel);
+  const animation = panel.animate({ transform: [from, closing ? offscreen : 'none'] }, {
+    duration: closing ? 210 : 280,
+    easing: closing ? 'cubic-bezier(.4, 0, 1, 1)' : 'cubic-bezier(.2, .7, .2, 1)',
+    fill: 'both',
+  });
+  panelMotion.set(panel, { animation, closing });
+  animation.onfinish = () => {
+    if (panelMotion.get(panel)?.animation !== animation) return;
+    if (closing) panel.close();
+    stopPanelMotion(panel);
+    afterClose?.();
+  };
+}
+
+function dismiss(panel: HTMLDialogElement, afterClose?: () => void) {
+  if (!panel.open || panelMotion.get(panel)?.closing) return;
+  if (mobilePanelMotion.matches) {
+    slidePanel(panel, true, afterClose);
+  } else {
+    stopPanelMotion(panel);
+    panel.close();
+    afterClose?.();
+  }
+}
+
 function show(next: HTMLDialogElement) {
-  for (const current of Object.values(dialog)) if (current !== next && current.open) current.close();
-  if (!next.open) next.showModal();
-  inside(next, 'h2').focus();
+  for (const current of Object.values(dialog)) {
+    if (current === next || !current.open) continue;
+    stopPanelMotion(current);
+    current.close();
+  }
+  if (!next.open) {
+    next.showModal();
+    if (mobilePanelMotion.matches) slidePanel(next, false);
+  }
+  inside(next, 'h2').focus({ preventScroll: true });
 }
 
 function radios(title: string, name: string, entries: Array<{ value: string; label: string }>, checked: string, stacked = false) {
@@ -503,7 +546,7 @@ function checkoutProblem(text: string) {
 }
 
 async function submitCheckout() {
-  if (!catalog || !reviewed || checkoutSubmit.disabled) return;
+  if (!catalog || !reviewed || checkoutSubmit.disabled || panelMotion.get(dialog.checkout)?.closing) return;
   clearWhatsAppLink();
   clearErrors();
   message('checkout-error', '');
@@ -536,7 +579,7 @@ async function submitCheckout() {
   checkoutSubmit.disabled = true;
   checkoutForm.setAttribute('aria-busy', 'true');
   write('checkout-submit-label', 'Verificando el menú…');
-  const stillOpen = () => dialog.checkout.open && version === checkoutVersion;
+  const stillOpen = () => dialog.checkout.open && !panelMotion.get(dialog.checkout)?.closing && version === checkoutVersion;
   try {
     let fresh: Catalog;
     try { fresh = await client.get(true); }
@@ -610,12 +653,18 @@ get('menu').addEventListener('click', (event) => {
   else storeSelection(defaultSelection(catalog, product));
 });
 for (const button of document.querySelectorAll('[data-open-cart]')) button.addEventListener('click', () => { renderCart(); show(dialog.cart); });
-for (const button of document.querySelectorAll('[data-close]')) button.addEventListener('click', () => button.closest('dialog')?.close());
+for (const button of document.querySelectorAll('[data-close]')) {
+  button.addEventListener('click', () => {
+    const panel = button.closest('dialog');
+    if (panel) dismiss(panel);
+  });
+}
 for (const panel of Object.values(dialog)) {
+  panel.addEventListener('cancel', (event) => { event.preventDefault(); dismiss(panel); });
   panel.addEventListener('click', (event) => {
     if (event.target !== panel) return;
     const box = panel.getBoundingClientRect();
-    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) panel.close();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dismiss(panel);
   });
 }
 
@@ -630,14 +679,14 @@ for (const [id, delta] of [['product-less', -1], ['product-more', 1]] as const) 
 }
 productForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  if (!selected || !dialog.product.open || get<HTMLButtonElement>('product-submit').disabled) return;
+  if (!selected || !dialog.product.open || panelMotion.get(dialog.product)?.closing || get<HTMLButtonElement>('product-submit').disabled) return;
   try {
     if (!storeSelection(selected, editedId)) return;
-    dialog.product.close();
-    if (editedId) {
+    const id = editedId;
+    dismiss(dialog.product, id ? () => {
       show(dialog.cart);
-      inside(get('cart-lines'), '[data-line-id="' + editedId + '"] [data-line-action="edit"]').focus();
-    }
+      inside(get('cart-lines'), '[data-line-id="' + id + '"] [data-line-action="edit"]').focus({ preventScroll: true });
+    } : undefined);
   } catch (error) { message('product-error', errorText(error)); }
 });
 
@@ -666,9 +715,6 @@ get('cart-lines').addEventListener('click', (event) => {
   if (control && !control.disabled) control.focus();
   else get('cart-title').focus();
 });
-dialog.product.addEventListener('cancel', (event) => {
-  if (editedId) { event.preventDefault(); dialog.product.close(); show(dialog.cart); }
-});
 dialog.product.addEventListener('close', () => {
   if (editedId && !dialog.cart.open) show(dialog.cart);
   editedId = undefined;
@@ -676,7 +722,7 @@ dialog.product.addEventListener('close', () => {
 });
 
 get('checkout-open').addEventListener('click', openCheckout);
-get('checkout-back').addEventListener('click', () => show(dialog.cart));
+get('checkout-back').addEventListener('click', () => dismiss(dialog.checkout, () => show(dialog.cart)));
 dialog.checkout.addEventListener('close', () => {
   checkoutVersion++;
   checkoutForm.reset();

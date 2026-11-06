@@ -145,6 +145,58 @@ test('móvil: CTA a combos, papas y bebidas, edad, formulario y mensaje de muest
   expect(message).not.toContain('DNI');
 });
 
+test('móvil: carrito y pedido suben al abrir y bajan al cerrar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/');
+  await addMercury(page);
+  await expect(product(page)).toBeHidden();
+
+  const cartTrigger = page.getByRole('button', { name: /Abrir carrito/ }).first();
+  const sampleSlide = async (trigger: ReturnType<Page['locator']>, panelId: string) => {
+    await trigger.focus();
+    return trigger.evaluate((button, id) => {
+      (button as HTMLButtonElement).click();
+      const panel = document.getElementById(id) as HTMLDialogElement;
+      const [animation] = panel.getAnimations();
+      if (!animation?.effect) throw new Error('El panel no se está animando');
+      animation.pause();
+      animation.currentTime = 0;
+      const start = panel.getBoundingClientRect().top;
+      animation.currentTime = Number(animation.effect.getComputedTiming().duration) / 2;
+      const middle = panel.getBoundingClientRect().top;
+      animation.finish();
+      return { start, middle };
+    }, panelId);
+  };
+  const assertOpensUp = async (trigger: ReturnType<Page['locator']>, panelId: string) => {
+    const { start, middle } = await sampleSlide(trigger, panelId);
+    expect(start).toBeGreaterThanOrEqual(843);
+    expect(middle).toBeLessThan(start);
+    await expect(page.locator('#' + panelId + ' h2')).toBeFocused();
+  };
+  const assertClosesDown = async (trigger: ReturnType<Page['locator']>, panelId: string) => {
+    const { start, middle } = await sampleSlide(trigger, panelId);
+    expect(middle).toBeGreaterThan(start);
+    await expect(page.locator('#' + panelId)).toBeHidden();
+  };
+
+  await assertOpensUp(cartTrigger, 'cart-dialog');
+  await assertClosesDown(cart(page).getByRole('button', { name: 'Cerrar carrito' }), 'cart-dialog');
+  await expect(cartTrigger).toBeFocused();
+
+  await assertOpensUp(cartTrigger, 'cart-dialog');
+  await assertOpensUp(cart(page).getByRole('button', { name: 'Continuar pedido' }), 'checkout-dialog');
+  await assertClosesDown(checkout(page).getByRole('button', { name: 'Cerrar checkout' }), 'checkout-dialog');
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await cartTrigger.click();
+  expect(await cart(page).evaluate((panel) => panel.getAnimations().length)).toBe(0);
+  await page.keyboard.press('Escape');
+  await expect(cart(page)).toBeHidden();
+  await expect(cartTrigger).toBeFocused();
+});
+
 test('teclado: selección de pestañas, foco de diálogo y Escape', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByText('Vista previa con precios de muestra.')).toBeVisible();
