@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "astro",
+  "installCommand": "npx --yes pnpm@11.7.0 install --frozen-lockfile",
+  "buildCommand": "npx --yes pnpm@11.7.0 build",
+  "outputDirectory": "dist",
+  "headers": [
+    { "source": "/catalog-source.json", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+    ] }
+  ]
+}

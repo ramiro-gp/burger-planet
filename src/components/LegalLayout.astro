@@ -1,0 +1,25 @@
+---
+import '../styles/site.css';
+import Brand from './Brand.astro';
+
+interface Props { title: string }
+const { title } = Astro.props;
+---
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{title} | Burger Planet</title>
+    <link rel="icon" href="/favicon.svg" />
+  </head>
+  <body>
+    <header class="site-header"><div class="shell header-inner"><Brand href="/" /></div></header>
+    <main class="shell legal-page">
+      <h1>{title}</h1>
+      <slot />
+      <a class="button button-outline" href="/">Volver a Burger Planet</a>
+    </main>
+  </body>
+</html>

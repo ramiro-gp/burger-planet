@@ -1,0 +1,185 @@
+---
+import '../styles/site.css';
+import { ArrowDown, ArrowUp, Clock, Copyright, Tag, ShoppingBag, Bike, MapPin, Orbit, PackageOpen, CupSoda } from '@lucide/astro';
+import Brand from '../components/Brand.astro';
+import BurgerIcon from '../components/BurgerIcon.astro';
+import SocialLinks from '../components/SocialLinks.astro';
+import OrderDialogs from '../components/OrderDialogs.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { categories, categoryNames, isAvailable } from '../lib/catalog';
+import { previewCatalog } from '../lib/fixture';
+import { formatArs } from '../lib/order';
+import source from '../../public/catalog-source.json';
+
+const preview = source.mode === 'preview';
+const defaultCategory = categories[0];
+const icons = { hamburguesas: BurgerIcon, combos: PackageOpen, papas: Orbit, bebidas: CupSoda };
+const indexable = import.meta.env.SITE_INDEXABLE === 'true' && !preview;
+const canonical = Astro.site ? new URL('/', Astro.site) : undefined;
+const planets = [
+  ['mercurio', '16%', '10%', '-7s', '26s'], ['venus', '23%', '17%', '-19s', '36s'],
+  ['tierra', '30%', '22%', '-24s', '44s'], ['marte', '37%', '29%', '-31s', '54s'],
+  ['jupiter', '43%', '35%', '-23s', '65s'], ['saturno', '48%', '40%', '-35s', '78s'],
+  ['urano', '52%', '45%', '-32s', '88s'], ['neptuno', '56%', '49%', '-66s', '100s'],
+];
+---
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#12100f" />
+    <title>Burger Planet | Burgers de otra galaxia</title>
+    <meta name="description" content="Ocho smash burgers, combos, papas y bebidas. Armá tu pedido de Burger Planet a tu manera." />
+    <meta property="og:title" content="Burger Planet | Burgers de otra galaxia" />
+    <meta property="og:description" content="Elegí tu burger, sumá tus extras y armá el pedido a tu manera." />
+    <meta property="og:type" content="website" />
+    {canonical && <link rel="canonical" href={canonical} />}
+    {canonical && <meta property="og:image" content={new URL('/images/combo.webp', canonical)} />}
+    {!indexable && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body id="inicio">
+    <a class="skip-link" href="#menu">Saltar al menú</a>
+    <header class="site-header">
+      <div class="shell header-inner">
+        <Brand />
+        <nav aria-label="Navegación principal">
+          <a href="#menu">Menú</a>
+          <a href="#entregas">Entregas</a>
+        </nav>
+        <button class="header-cart" type="button" data-open-cart aria-label="Abrir carrito, 0 productos">
+          <ShoppingBag size={19} aria-hidden="true" /><span class="header-cart-label">Carrito</span><span data-cart-count>0</span>
+        </button>
+      </div>
+    </header>
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="shell hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow hero-kicker"><span></span> SMASH BURGERS</p>
+            <h1 id="hero-title">Burgers de<br />otra <em>galaxia<span>.</span></em></h1>
+            <p class="hero-description">Ocho planetas, ocho recetas. Elegí tu smash, sumale lo que te gusta y mandá el pedido por WhatsApp.</p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#menu" data-select-category={defaultCategory}>Hacé tu pedido</a>
+            </div>
+          </div>
+          <div class="solar" data-solar aria-hidden="true">
+            <div class="solar-scene">
+              <div class="stars"></div>
+              <div class="solar-glow"></div>
+              <div class="orbits">
+                {planets.map(([name, x, y, delay, time]) => (
+                  <div class:list={['orbit-track', name]} style={`--x:${x};--y:${y};--offset:${delay};--time:${time}`}>
+                    <i class="planet"></i>
+                  </div>
+                ))}
+              </div>
+              <div class="solar-burger">
+                <img src="/images/hero.webp" srcset="/images/hero-small.webp 560w, /images/hero.webp 980w"
+                  sizes="(max-width: 720px) 45vw, 330px" alt="" width="980" height="980" fetchpriority="high" decoding="async" />
+              </div>
+              <span class="solar-cross cross-one">+</span><span class="solar-cross cross-two">+</span>
+              <div class="solar-caption"><i></i> SISTEMA SOLAR / PB—01</div>
+            </div>
+          </div>
+        </div>
+        <div class="shell hero-scroll">
+          <a class="scroll-cue" href="#menu"><ArrowDown size={18} aria-hidden="true" /> Scroll</a>
+        </div>
+      </section>
+      <section class="catalog-section" id="menu" aria-labelledby="catalog-title">
+        <div class="shell">
+          <div class="section-heading">
+            <div><p class="eyebrow">LA CARTA</p><h2 id="catalog-title">Elegí tu órbita<span>.</span></h2></div>
+            <p>Del primer disco al último extra. Armá tu pedido como más te gusta.</p>
+          </div>
+          <section class="promo-section" id="promos" aria-labelledby="promo-title" hidden>
+            <h3 id="promo-title"><Tag size={18} aria-hidden="true" /> Promos</h3>
+            <div class="promo-grid">
+              <article id="combo-promo" class="promo" hidden>
+                <div><h4>Combos con ahorro</h4><p id="combo-promo-text"></p></div>
+                <a class="text-button" href="#categorias" data-select-category={defaultCategory}>Ver combos</a>
+              </article>
+              <article id="coupon-promo" class="promo" hidden>
+                <div><h4 id="coupon-promo-title"></h4><p>Aplicalo a los productos al finalizar tu pedido.</p></div>
+                <span id="coupon-promo-code" class="promo-code"></span>
+              </article>
+            </div>
+          </section>
+          <div class="category-tabs" id="categorias" role="tablist" aria-label="Categorías del menú">
+            {categories.map((category) => {
+              const Icon = icons[category];
+              return <button type="button" id={'tab-' + category} role="tab" aria-selected={category === defaultCategory}
+                aria-controls={'panel-' + category} tabindex={category === defaultCategory ? 0 : -1} data-category={category}>
+                <Icon size={18} aria-hidden="true" />{categoryNames[category]}
+              </button>;
+            })}
+          </div>
+          <div class="catalog-status" id="catalog-status" hidden={!preview}>
+            <p id="source-message" role="status">{preview && 'Vista previa con precios de muestra.'}</p>
+            <button class="text-button" type="button" id="catalog-retry" hidden>Actualizar menú</button>
+          </div>
+          {categories.map((category) => (
+            <div id={'panel-' + category} role="tabpanel" aria-labelledby={'tab-' + category} tabindex="0"
+              hidden={category !== defaultCategory} class="catalog-panel">
+              <div class="catalog-grid" data-product-grid={category}>
+                {preview && category === defaultCategory && previewCatalog[category].map((product, index) => (
+                  <ProductCard product={product} available={isAvailable(previewCatalog, product)} index={index} />
+                ))}
+              </div>
+            </div>
+          ))}
+          <noscript><p class="notice">Activá JavaScript para recorrer el menú, personalizar y armar un pedido.</p></noscript>
+        </div>
+      </section>
+      <section id="entregas" class="delivery-section" aria-labelledby="delivery-title">
+        <div class="shell delivery-grid">
+          <div><p class="eyebrow">ENTREGAS</p><h2 id="delivery-title">De nuestra<br />nave a la tuya<span>.</span></h2></div>
+          <div class="delivery-options">
+            <article>
+              <Bike aria-hidden="true" size={25} />
+              <div><h3>Envío a domicilio</h3><p>Una tarifa por pedido.</p></div>
+              <strong id="delivery-price">{preview ? formatArs(previewCatalog.settings.shipping) : '—'}</strong>
+            </article>
+            <article>
+              <MapPin aria-hidden="true" size={25} />
+              <div><h3>Retiro en local</h3><p id="pickup-address">{preview ? previewCatalog.settings.address : 'Consultá la dirección en el menú.'}</p></div>
+              <strong>Gratis</strong>
+            </article>
+            <article id="business-hours" hidden>
+              <Clock aria-hidden="true" size={25} />
+              <div><h3>Horarios de atención</h3><ul id="business-hours-list" class="hours-list"></ul></div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="shell footer-inner">
+        <Brand />
+        <SocialLinks />
+        <a class="text-button" href="#inicio">Volver arriba <ArrowUp size={16} aria-hidden="true" /></a>
+      </div>
+      <div class="shell footer-meta">
+        <p><Copyright size={15} aria-hidden="true" /> <span id="copyright-year">{new Date().getFullYear()}</span> Burger Planet</p>
+        <nav aria-label="Información legal"><a href="/privacidad/">Privacidad</a><a href="/terminos/">Términos</a></nav>
+      </div>
+      <p class="shell developer-credit">
+        Hecho con <BurgerIcon size={18} /> por
+        <a href="https://ramita.dev" target="_blank" rel="noopener noreferrer">Ramiro García</a>
+      </p>
+    </footer>
+    <button class="mobile-cart" type="button" data-open-cart hidden>
+      <ShoppingBag size={19} aria-hidden="true" /><span>Ver carrito <span data-cart-count>0</span></span>
+      <strong id="mobile-subtotal"></strong>
+    </button>
+    <p id="shop-announcement" class="sr-only" role="status"></p>
+    <template id="product-card-template"><ProductCard /></template>
+    <OrderDialogs />
+    <script>
+      import '../scripts/shop';
+      import '../scripts/solar';
+    </script>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+id,nombre,descripcion,precio,recargo_combo,imagen,disponible,orden
+papas-normales,Papas normales,"Corte clásico, doradas y crocantes, con un toque de sal.",3800,0,/images/papas-normales.webp,si,10
+papas-sazonadas,Papas sazonadas,"Papas con piel, pimentón ahumado y hierbas.",4500,700,/images/papas-sazonadas.webp,si,20
+papas-cheddar,Papas con cheddar y bacon,Cheddar fundido y bacon crocante sobre papas doradas.,5900,2100,/images/papas-cheddar.webp,si,30

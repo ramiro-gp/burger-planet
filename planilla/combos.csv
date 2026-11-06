@@ -1,0 +1,9 @@
+id,hamburguesa_id,nombre,descripcion,precio,imagen,disponible,orden
+combo-mercurio,mercurio,Mercurio con papas,Hamburguesa a tu manera con papas doradas.,11300,/images/combo-mercurio.svg,si,10
+combo-venus,venus,Venus con papas,Hamburguesa a tu manera con papas doradas.,12700,/images/combo-venus.svg,si,20
+combo-tierra,tierra,Tierra con papas,Hamburguesa a tu manera con papas doradas.,11800,/images/combo-tierra.svg,si,30
+combo-marte,marte,Marte con papas,Hamburguesa a tu manera con papas doradas.,12600,/images/combo-marte.svg,si,40
+combo-jupiter,jupiter,Júpiter con papas,Hamburguesa a tu manera con papas doradas.,13300,/images/combo-jupiter.svg,si,50
+combo-saturno,saturno,Saturno con papas,Hamburguesa a tu manera con papas doradas.,13100,/images/combo-saturno.svg,si,60
+combo-urano,urano,Urano con papas,Hamburguesa a tu manera con papas doradas.,12800,/images/combo-urano.svg,si,70
+combo-neptuno,neptuno,Neptuno con papas,Hamburguesa a tu manera con papas doradas.,13500,/images/combo-neptuno.svg,si,80

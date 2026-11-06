@@ -1,0 +1,9 @@
+---
+import BrandMark from './BrandMark.astro';
+interface Props { href?: string }
+const { href = '#inicio' } = Astro.props;
+---
+<a class="brand" href={href} aria-label="Burger Planet, inicio">
+  <BrandMark />
+  <span>BURGER<span class="brand-accent">PLANET</span></span>
+</a>

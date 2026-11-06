@@ -1,0 +1,5 @@
+id,nombre,descripcion,precio,alcohol,imagen,disponible,orden
+coca-cola,Coca-Cola,"Original, en lata de 354 ml.",2500,no,/images/coca-cola.webp,si,10
+sprite,Sprite,"Lima-limón, en lata de 354 ml.",2500,no,/images/sprite.webp,si,20
+heineken,Heineken,"Lager, en botella de 330 ml.",3900,si,/images/heineken.webp,si,30
+brahma,Brahma,"Lager, en botella de 330 ml.",3400,si,/images/brahma.webp,si,40

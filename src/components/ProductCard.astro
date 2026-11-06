@@ -1,0 +1,28 @@
+---
+import { Plus } from '@lucide/astro';
+import type { Product } from '../lib/catalog';
+import { alcoholNotice } from '../lib/catalog';
+import { formatArs } from '../lib/order';
+interface Props { product?: Product; available?: boolean; index?: number }
+const { product, available = true, index = 0 } = Astro.props;
+const alcoholic = product?.kind === 'bebidas' && product.alcohol;
+---
+<article class="product-card" data-card data-kind={product?.kind} data-product-id={product?.id}>
+  <div class="product-media">
+    <img src={product?.image} alt="" width="380" height="508" loading={index < 4 && product ? 'eager' : 'lazy'} decoding="async" data-card-image />
+    <span class="product-tag" data-card-tag hidden={!alcoholic}>+18</span>
+  </div>
+  <div class="product-content">
+    <h3 data-card-name>{product?.name}</h3>
+    <p data-card-description>{product?.description}</p>
+    <p class="legal" data-card-legal hidden={!alcoholic}>{alcoholNotice}</p>
+    <div class="product-bottom">
+      <span class="product-price" data-card-price>{product && formatArs(product.price)}</span>
+      <button class="product-button" type="button" data-pick={product?.id ?? ''} disabled={!available}
+        aria-label={product ? (!available ? product.name + ' sin stock' : 'Agregar ' + product.name) : undefined}>
+        <span data-card-action>{available ? 'Agregar' : 'Sin stock'}</span>
+        <Plus size={15} aria-hidden="true" />
+      </button>
+    </div>
+  </div>
+</article>

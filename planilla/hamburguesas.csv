@@ -1,0 +1,9 @@
+id,nombre,descripcion,precio,disco_extra,imagen,disponible,orden
+mercurio,Mercurio,"Smash clásico, cheddar fundido, pepinos y salsa Planet.",8400,2200,/images/mercurio.webp,si,10
+venus,Venus,"Cheddar, bacon ahumado y cebolla caramelizada.",9800,2200,/images/venus.webp,si,20
+tierra,Tierra,"Lechuga fresca, tomate, cebolla morada y mayonesa de la casa.",8900,2200,/images/tierra.webp,si,30
+marte,Marte,"Cheddar, jalapeños y una salsa de chipotle que levanta temperatura.",9700,2200,/images/marte.webp,si,40
+jupiter,Júpiter,"BBQ ahumada, cheddar y cebolla crocante.",10400,2200,/images/jupiter.webp,si,50
+saturno,Saturno,"Aros de cebolla, cheddar y mayonesa ahumada.",10200,2200,/images/saturno.webp,si,60
+urano,Urano,"Provolone, rúcula fresca y alioli de hierbas.",9900,2200,/images/urano.webp,si,70
+neptuno,Neptuno,"Hongos dorados, queso suizo y alioli de ajo asado.",10600,2200,/images/neptuno.webp,si,80

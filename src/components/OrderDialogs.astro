@@ -1,0 +1,162 @@
+---
+import { X, ArrowLeft, ArrowRight, ShoppingBag, Plus, Minus, Pencil, Trash } from '@lucide/astro';
+import { alcoholNotice } from '../lib/catalog';
+import WhatsAppMark from './WhatsAppMark.astro';
+---
+<dialog id="product-dialog" class="dialog product-dialog" aria-labelledby="product-title">
+  <div class="dialog-shell">
+    <header class="dialog-heading">
+      <div><p class="eyebrow">A TU MANERA</p><h2 id="product-title" tabindex="-1">Personalizá tu pedido</h2></div>
+      <button class="icon-button" type="button" data-close aria-label="Cerrar personalización"><X size={23} aria-hidden="true" /></button>
+    </header>
+    <form id="product-form" class="dialog-form">
+      <div class="dialog-scroll">
+        <div class="custom-product">
+          <img id="product-image" src="/images/placeholder.svg" alt="" width="120" height="120" />
+          <p id="product-description"></p>
+        </div>
+        <div id="product-options"></div>
+        <p class="notice" id="product-alcohol" hidden>{alcoholNotice}</p>
+        <label class="field">Observaciones del producto <span>(opcional)</span>
+          <textarea name="product-notes" rows="2" maxlength="180" placeholder="Ej. Sin pepinos, por favor"></textarea>
+        </label>
+        <p id="product-error" class="error" role="alert" hidden></p>
+      </div>
+      <div class="dialog-actions">
+        <div class="stepper">
+          <button class="icon-button" type="button" id="product-less" aria-label="Restar una unidad"><Minus size={17} aria-hidden="true" /></button>
+          <output id="product-quantity" aria-label="Cantidad">1</output>
+          <button class="icon-button" type="button" id="product-more" aria-label="Sumar una unidad"><Plus size={17} aria-hidden="true" /></button>
+        </div>
+        <button class="button button-primary flex-1" id="product-submit" type="submit">
+          <span id="product-submit-label">Sumar al pedido</span><span id="product-total" aria-live="polite"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<dialog id="cart-dialog" class="dialog cart-dialog" aria-labelledby="cart-title">
+  <div class="dialog-shell">
+    <header class="dialog-heading">
+      <div><p class="eyebrow">TU PEDIDO</p><h2 id="cart-title" tabindex="-1">Carrito</h2></div>
+      <button class="icon-button" type="button" data-close aria-label="Cerrar carrito"><X size={23} aria-hidden="true" /></button>
+    </header>
+    <div class="dialog-scroll">
+      <div id="cart-empty" class="empty-state">
+        <ShoppingBag size={30} aria-hidden="true" />
+        <p>Tu carrito está vacío.</p>
+        <button class="button button-outline" type="button" data-close>Volver al menú</button>
+      </div>
+      <ul id="cart-lines" class="cart-lines"></ul>
+    </div>
+    <footer id="cart-footer" class="dialog-footer" hidden>
+      <div class="cart-delivery">
+        <fieldset>
+          <legend>Modalidad de entrega</legend>
+          <div class="segments">
+            <label><input type="radio" name="cart-delivery" value="envio" checked /><span>Envío</span></label>
+            <label><input type="radio" name="cart-delivery" value="retiro" /><span>Retiro</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <dl class="totals">
+        <div><dt>Subtotal</dt><dd id="cart-subtotal"></dd></div>
+        <div><dt>Envío</dt><dd id="cart-shipping"></dd></div>
+        <div class="grand-total"><dt>Total estimado</dt><dd id="cart-total"></dd></div>
+      </dl>
+      <button class="button button-primary w-full" id="checkout-open" type="button">Continuar pedido <ArrowRight size={17} aria-hidden="true" /></button>
+    </footer>
+  </div>
+</dialog>
+
+<dialog id="checkout-dialog" class="dialog checkout-dialog" aria-labelledby="checkout-title">
+  <div class="dialog-shell">
+    <header class="dialog-heading">
+      <div><p class="eyebrow">ÚLTIMO PASO</p><h2 id="checkout-title" tabindex="-1">Confirmá los datos</h2></div>
+      <button class="icon-button" type="button" data-close aria-label="Cerrar checkout"><X size={23} aria-hidden="true" /></button>
+    </header>
+    <form id="checkout-form" class="dialog-form" novalidate>
+      <div class="dialog-scroll checkout-fields">
+        <button class="text-button" id="checkout-back" type="button"><ArrowLeft size={15} aria-hidden="true" /> Volver al carrito</button>
+        <div class="field-grid">
+          <label class="field">Nombre
+            <input name="name" autocomplete="name" required maxlength="80" aria-describedby="err-name" />
+            <span class="error" id="err-name" hidden></span>
+          </label>
+          <label class="field">Teléfono
+            <input name="phone" type="tel" autocomplete="tel" required maxlength="26" aria-describedby="err-phone" />
+            <span class="error" id="err-phone" hidden></span>
+          </label>
+        </div>
+        <fieldset aria-describedby="err-delivery">
+          <legend>Modalidad de entrega</legend>
+          <div class="segments">
+            <label><input type="radio" name="delivery" value="envio" required /><span>Envío a domicilio</span></label>
+            <label><input type="radio" name="delivery" value="retiro" required /><span>Retiro en local</span></label>
+          </div>
+          <p id="err-delivery" class="error" hidden></p>
+        </fieldset>
+        <label id="address-field" class="field">Dirección completa
+          <input name="address" autocomplete="street-address" maxlength="140" aria-describedby="err-address" />
+          <span class="error" id="err-address" hidden></span>
+        </label>
+        <p class="muted" id="checkout-pickup" hidden></p>
+        <label class="field">Observaciones generales <span>(opcional)</span>
+          <textarea name="notes" rows="2" maxlength="180" aria-describedby="err-notes" placeholder="Ej. El timbre no funciona"></textarea>
+          <span class="error" id="err-notes" hidden></span>
+        </label>
+        <div class="notice" id="checkout-alcohol" hidden>
+          <p>{alcoholNotice}</p><p id="alcohol-terms" hidden></p>
+          <label class="check-row"><input type="checkbox" name="adult" aria-describedby="err-adult" /> Confirmo que tengo 18 años o más.</label>
+          <p id="err-adult" class="error" hidden></p>
+        </div>
+        <label class="field" id="coupon-field" hidden>Código de descuento <span>(opcional)</span>
+          <input name="coupon" id="checkout-coupon" maxlength="24" autocomplete="off" autocapitalize="characters" aria-describedby="coupon-status" />
+          <span id="coupon-status" role="status" hidden></span>
+        </label>
+        <section class="order-summary" aria-labelledby="summary-title">
+          <h3 id="summary-title">Resumen del pedido</h3>
+          <ul id="checkout-lines" class="summary-lines"></ul>
+          <dl class="totals">
+            <div><dt>Subtotal</dt><dd id="checkout-subtotal"></dd></div>
+            <div id="checkout-discount-row" hidden><dt>Descuento</dt><dd id="checkout-discount"></dd></div>
+            <div><dt>Envío</dt><dd id="checkout-shipping"></dd></div>
+            <div class="grand-total"><dt>Total estimado</dt><dd id="checkout-total"></dd></div>
+          </dl>
+        </section>
+        <div id="checkout-changes" class="notice" hidden>
+          <h3 tabindex="-1" id="changes-title">Tu pedido se actualizó</h3>
+          <ul id="changes-list"></ul>
+          <label class="check-row"><input type="checkbox" name="accept" /> Acepto los cambios que se muestran arriba.</label>
+        </div>
+        <p id="checkout-error" role="alert" tabindex="-1" class="error" hidden></p>
+      </div>
+      <div class="dialog-footer">
+        <p id="checkout-caption" class="checkout-caption">Revisá el mensaje y envialo en WhatsApp. El comercio confirma disponibilidad y cobro por chat.</p>
+        <button class="button button-primary w-full" id="checkout-submit" type="submit">
+          <WhatsAppMark />
+          <span id="checkout-submit-label">Hacer pedido</span>
+        </button>
+        <a class="text-button" id="checkout-whatsapp" target="_blank" rel="noopener noreferrer" hidden>Abrir WhatsApp en otra pestaña</a>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<template id="cart-line-template">
+  <li class="cart-line">
+    <div class="cart-line-top"><strong data-line-name></strong><strong data-line-subtotal></strong></div>
+    <p data-line-parts class="muted"></p>
+    <p data-line-error class="error" hidden></p>
+    <div class="cart-line-actions">
+      <div class="stepper">
+        <button type="button" class="icon-button" data-line-action="less" aria-label="Restar una unidad"><Minus size={17} aria-hidden="true" /></button>
+        <span data-line-quantity></span>
+        <button type="button" class="icon-button" data-line-action="more" aria-label="Sumar una unidad"><Plus size={17} aria-hidden="true" /></button>
+      </div>
+      <button type="button" class="text-button" data-line-action="edit"><Pencil size={15} aria-hidden="true" /> Editar</button>
+      <button type="button" class="icon-button" data-line-action="remove" aria-label="Eliminar producto"><Trash size={17} aria-hidden="true" /></button>
+    </div>
+  </li>
+</template>
